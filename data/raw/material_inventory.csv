@@ -1,0 +1,5 @@
+material_id,available_stock,reorder_level,location
+RM001,1200,300,Stores A
+RM002,5000,1000,Stores A
+RM003,2500,500,Stores B
+RM004,700,200,Stores B

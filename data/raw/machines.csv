@@ -1,0 +1,4 @@
+machine_id,machine_name,line_name,daily_capacity,shift_hours,status
+MC001,Stamping Machine A,Line A,3000,8,Active
+MC002,Forming Machine A,Line A,2500,8,Active
+MC003,Assembly Machine B,Line B,4000,8,Active

@@ -1,0 +1,6 @@
+product_id,product_name,family,size_mm,unit,status
+HC012,Hose Clamp 12mm,Small,12,Nos,Active
+HC020,Hose Clamp 20mm,Small,20,Nos,Active
+HC032,Hose Clamp 32mm,Medium,32,Nos,Active
+HC050,Hose Clamp 50mm,Medium,50,Nos,Active
+HC080,Hose Clamp 80mm,Heavy,80,Nos,Active

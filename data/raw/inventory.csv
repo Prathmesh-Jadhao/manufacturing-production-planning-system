@@ -1,0 +1,6 @@
+product_id,opening_stock,current_stock,safety_stock
+HC012,700,650,100
+HC020,1500,1200,200
+HC032,1000,900,150
+HC050,500,400,100
+HC080,200,180,50
