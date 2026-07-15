@@ -7,3 +7,4 @@ from .inventory import Inventory
 from .production_plan import ProductionPlan
 from .material_requirement import MaterialRequirement
 from .material_inventory import MaterialInventory
+from .machine_schedule import MachineSchedule
