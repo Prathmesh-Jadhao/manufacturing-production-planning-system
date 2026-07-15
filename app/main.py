@@ -8,6 +8,7 @@ from app.api.routes import (
     planning,
     schedule,
     mrp,
+    inventory,
 )
 
 app = FastAPI(
@@ -24,6 +25,7 @@ app.include_router(material_requirements.router)
 app.include_router(planning.router)
 app.include_router(mrp.router)
 app.include_router(schedule.router)
+app.include_router(inventory.router)
 
 
 @app.get("/")

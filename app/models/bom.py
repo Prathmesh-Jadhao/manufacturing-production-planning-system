@@ -28,7 +28,7 @@ class BOM(Base):
 
     material_id = Column(
         String(20),
-        ForeignKey("materials.material_id"),\
+        ForeignKey("materials.material_id"),
         nullable=False
     )
 

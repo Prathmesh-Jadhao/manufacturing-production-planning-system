@@ -40,7 +40,7 @@ class Product(Base):
     )
 
     material_requirements = relationship(
-    "MaterialRequirement",
-    back_populates="product",
-    cascade="all, delete-orphan"
-)
+        "MaterialRequirement",
+        back_populates="product",
+        cascade="all, delete-orphan"
+    )

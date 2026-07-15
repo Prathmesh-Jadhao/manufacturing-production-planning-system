@@ -5,6 +5,7 @@ from app.models import (
     ProductionPlan,
     MachineSchedule
 )
+from app.services.planning_engine import PlanningEngine
 
 
 class MachineScheduler:
@@ -39,14 +40,16 @@ class MachineScheduler:
                 if remaining_qty <= 0:
                     break
 
+                machine_monthly_capacity = float(machine.daily_capacity * PlanningEngine.WORKING_DAYS)
+
                 allocation = min(
                     remaining_qty,
-                    machine.daily_capacity
+                    machine_monthly_capacity
                 )
 
                 utilization = (
                     allocation /
-                    machine.daily_capacity
+                    machine_monthly_capacity
                 ) * 100
 
                 db.add(

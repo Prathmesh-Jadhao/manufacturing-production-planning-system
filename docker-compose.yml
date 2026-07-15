@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:17
 
-    container_name: manusfacturing_postgres
+    container_name: manufacturing_postgres
 
     restart: unless-stopped
 

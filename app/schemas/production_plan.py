@@ -7,13 +7,13 @@ class ProductionPlanResponse(BaseModel):
     plan_month: date
     product_id: str
 
-    forecast_qty: float
-    available_stock: float
-    production_required: float
+    forecast_qty: int
+    available_stock: int
+    production_required: int
 
-    capacity: float
-    planned_quantity: float
-    pending_quantity: float
+    capacity: int
+    planned_quantity: int
+    pending_quantity: int
     capacity_utilization: float
 
     status: str
