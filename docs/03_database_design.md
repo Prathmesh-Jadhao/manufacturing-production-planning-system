@@ -75,11 +75,12 @@ Purpose
 
 Stores raw materials required during manufacturing.
 
-| Column        | Type         |
-| ------------- | ------------ |
-| material_id   | VARCHAR(20)  |
-| material_name | VARCHAR(100) |
-| unit          | VARCHAR(10)  |
+| Column        | Type         | Description       |
+| ------------- | ------------ | ----------------- |
+| material_id   | VARCHAR(20)  | Primary Key       |
+| material_name | VARCHAR(100) | Material Name      |
+| unit          | VARCHAR(20)  | Unit of Measure   |
+| status       | VARCHAR(20)  | Active / Inactive |
 
 Example
 
@@ -97,20 +98,23 @@ Purpose
 
 Defines which raw materials are required to manufacture one unit of a product.
 
-| Column            | Type           |
-| ----------------- | -------------- |
-| bom_id            | SERIAL         |
-| product_id        | FK → Products  |
-| material_id       | FK → Materials |
-| quantity_per_unit | DECIMAL(10,4)  |
+| Column            | Type           | Description                       |
+| ----------------- | -------------- | --------------------------------- |
+| bom_id            | SERIAL         | Primary Key                       |
+| product_id        | FK → Products  | Associated Product                |
+| material_id       | FK → Materials | Associated Material               |
+| quantity_per_unit | DECIMAL(10,4)  | Quantity per unit of product      |
+| scrap_percentage  | DECIMAL(5,2)   | Expected scrap rate (e.g. 2.50%)  |
+| effective_from    | DATE           | Effective starting date           |
+| effective_to      | DATE           | Effective ending date             |
 
 Example
 
-| Product | Material              | Quantity |
-| ------- | --------------------- | -------- |
-| HC020   | Stainless Steel Strip | 0.062 kg |
-| HC020   | Housing               | 1        |
-| HC020   | Worm Screw            | 1        |
+| Product | Material              | Quantity | Scrap% |
+| ------- | --------------------- | -------- | ------ |
+| HC020   | Stainless Steel Strip | 0.062 kg | 5.00%  |
+| HC020   | Housing               | 1        | 0.00%  |
+| HC020   | Worm Screw            | 1        | 0.00%  |
 
 ---
 
@@ -120,35 +124,37 @@ Purpose
 
 Stores production machine information.
 
-| Column         | Type         |
-| -------------- | ------------ |
-| machine_id     | VARCHAR(20)  |
-| machine_name   | VARCHAR(100) |
-| line_name      | VARCHAR(50)  |
-| daily_capacity | INTEGER      |
-| shift_hours    | INTEGER      |
+| Column         | Type         | Description       |
+| -------------- | ------------ | ----------------- |
+| machine_id     | VARCHAR(20)  | Primary Key       |
+| machine_name   | VARCHAR(100) | Machine Name      |
+| line_name      | VARCHAR(50)  | Manufacturing Line|
+| daily_capacity | INTEGER      | Capacity per day  |
+| shift_hours    | INTEGER      | Working hours     |
+| status         | VARCHAR(20)  | Active / Inactive |
 
 Example
 
-| Machine | Capacity       |
-| ------- | -------------- |
-| ST01    | 3000 Units/Day |
-| FM01    | 2500 Units/Day |
+| Machine | Capacity       | Status |
+| ------- | -------------- | ------ |
+| ST01    | 3000 Units/Day | Active |
+| FM01    | 2500 Units/Day | Active |
 
 ---
 
-# Table 5 — Forecast
+# Table 5 — Forecasts
 
 Purpose
 
 Stores monthly sales forecasts received from the Sales department.
 
-| Column         | Type          |
-| -------------- | ------------- |
-| forecast_id    | SERIAL        |
-| forecast_month | DATE          |
-| product_id     | FK → Products |
-| forecast_qty   | INTEGER       |
+| Column         | Type          | Description       |
+| -------------- | ------------- | ----------------- |
+| forecast_id    | SERIAL        | Primary Key       |
+| forecast_month | DATE          | Forecast month    |
+| product_id     | FK → Products | Associated Product|
+| forecast_qty   | INTEGER       | Target forecast   |
+| created_at     | TIMESTAMP     | Creation date     |
 
 ---
 
@@ -156,38 +162,100 @@ Stores monthly sales forecasts received from the Sales department.
 
 Purpose
 
-Stores current inventory information.
+Stores current finished product inventory information.
 
-| Column        | Type          |
-| ------------- | ------------- |
-| inventory_id  | SERIAL        |
-| product_id    | FK → Products |
-| opening_stock | INTEGER       |
-| current_stock | INTEGER       |
-| safety_stock  | INTEGER       |
-| last_updated  | TIMESTAMP     |
+| Column        | Type          | Description            |
+| ------------- | ------------- | ---------------------- |
+| inventory_id  | SERIAL        | Primary Key            |
+| product_id    | FK → Products | Associated Product (UQ)|
+| opening_stock | INTEGER       | Stock at start of cycle|
+| current_stock | INTEGER       | Actual on-hand stock   |
+| safety_stock  | INTEGER       | Minimum safety buffer  |
+| last_updated  | TIMESTAMP     | Last update timestamp  |
 
 ---
 
-# Table 7 — Production Plan
+# Table 7 — Production Plans
 
 Purpose
 
 Stores production plans generated by the planning engine.
 
-| Column               | Type          |
-| -------------------- | ------------- |
-| plan_id              | SERIAL        |
-| plan_month           | DATE          |
-| product_id           | FK → Products |
-| forecast_qty         | INTEGER       |
-| available_stock      | INTEGER       |
-| production_required  | INTEGER       |
-| capacity             | INTEGER       |
-| planned_quantity     | INTEGER       |
-| pending_quantity     | INTEGER       |
-| capacity_utilization | DECIMAL(5,2)  |
-| status               | VARCHAR(30)   |
+| Column               | Type          | Description                      |
+| -------------------- | ------------- | -------------------------------- |
+| plan_id              | SERIAL        | Primary Key                      |
+| plan_month           | DATE          | Targeted planning month          |
+| product_id           | FK → Products | Associated Product               |
+| forecast_qty         | INTEGER       | Forecasted demand                |
+| available_stock      | INTEGER       | Stock available at start         |
+| production_required  | INTEGER       | Net production demand            |
+| capacity             | INTEGER       | Total machine capacity           |
+| planned_quantity     | INTEGER       | Capacity-allocated quantity      |
+| pending_quantity     | INTEGER       | Over-capacity remainder          |
+| capacity_utilization | DECIMAL(5,2)  | Machine capacity utilization %   |
+| status               | VARCHAR(30)   | Plan Status (READY/OVER_CAPACITY)|
+
+---
+
+# Table 8 — Material Requirements
+
+Purpose
+
+Stores material requirements (MRP) derived from the production plans.
+
+| Column               | Type           | Description                        |
+| -------------------- | -------------- | ---------------------------------- |
+| requirement_id       | SERIAL         | Primary Key                        |
+| plan_id              | FK → Prod Plans| Reference to Production Plan       |
+| product_id           | FK → Products  | Associated Product                 |
+| material_id          | FK → Materials | Associated Raw Material            |
+| required_quantity    | DECIMAL(12,4)  | Total requirement (includes scrap) |
+| available_stock      | DECIMAL(12,4)  | Available material stock           |
+| shortage_quantity    | DECIMAL(12,4)  | Stock shortage amount              |
+| procurement_required | DECIMAL(12,4)  | Raw material to procure            |
+| procurement_status   | VARCHAR(30)    | Procurement status (OK/REQUIRED)   |
+| unit                 | VARCHAR(20)    | Unit of measure                    |
+| requirement_date     | DATE           | Date requirement is needed         |
+| status               | VARCHAR(30)    | MRP status                         |
+| created_at           | TIMESTAMP      | Auto-generated timestamp           |
+| updated_at           | TIMESTAMP      | Last modified timestamp            |
+
+---
+
+# Table 9 — Material Inventory
+
+Purpose
+
+Stores raw material inventory stock balances and safety levels.
+
+| Column          | Type           | Description                    |
+| --------------- | -------------- | ------------------------------ |
+| material_id     | FK → Materials | Primary Key (Material reference)|
+| available_stock | DECIMAL(12,4)  | Current available stock qty    |
+| reorder_level   | DECIMAL(12,4)  | Minimum buffer trigger level   |
+| location        | VARCHAR(50)    | Warehouse storage location     |
+| last_updated    | TIMESTAMP      | Last update timestamp          |
+
+---
+
+# Table 10 — Machine Schedule
+
+Purpose
+
+Stores the detailed machine-level production schedule.
+
+| Column             | Type           | Description                    |
+| ------------------ | -------------- | ------------------------------ |
+| schedule_id        | SERIAL         | Primary Key                    |
+| plan_id            | FK → Prod Plans| Reference to Production Plan   |
+| machine_id         | FK → Machines  | Allocated Machine              |
+| product_id         | FK → Products  | Product to make                |
+| scheduled_quantity | DECIMAL(10,2)  | Quantity assigned to machine   |
+| utilization        | DECIMAL(5,2)   | Utilization % of machine capacity|
+| production_date    | DATE           | Scheduled date                 |
+| status             | VARCHAR(30)    | Schedule status                |
+| created_at         | TIMESTAMP      | Creation timestamp             |
+| updated_at         | TIMESTAMP      | Last modification timestamp    |
 
 ---
 
@@ -200,19 +268,19 @@ Sales Forecast
 Forecast Validation
         │
         ▼
-Inventory Check
+Inventory Check (Subtracting Safety Stock)
         │
         ▼
-Capacity Check
+Capacity Check (Active Machines Only)
         │
         ▼
-Material Requirement Planning
+Material Requirement Planning (Accounting for Scrap & Material Allocation)
         │
         ▼
-Production Planning
+Machine Scheduling (Tracking Capacity Across Plans)
         │
         ▼
-Production Plan
+Production Plan & Schedule
 ```
 
 ---
@@ -222,21 +290,15 @@ Production Plan
 ## Production Required
 
 ```
-Production Required = Forecast Quantity − Current Stock
+Production Required = max(0, Forecast Quantity − (Current Stock − Safety Stock))
 ```
-
-If the result is negative, Production Required is set to zero.
 
 ---
 
 ## Planned Quantity
 
 ```
-Planned Quantity = Minimum
-(
-Production Required,
-Machine Capacity
-)
+Planned Quantity = min(Production Required, Machine Capacity)
 ```
 
 ---
@@ -252,26 +314,16 @@ Pending Quantity = Production Required − Planned Quantity
 ## Capacity Utilization
 
 ```
-Capacity Utilization =
-(Planned Quantity / Machine Capacity) × 100
+Capacity Utilization = (Planned Quantity / Machine Capacity) × 100
 ```
 
 ---
 
-# Future Enhancements
+## MRP Quantity with Scrap
 
-The following modules are planned for future releases:
-
-* Purchase Orders
-* Suppliers
-* Production Orders
-* Inventory Transactions
-* Warehouse Management
-* User Authentication
-* Dashboard Analytics
-* Automated Alerts
-* ERP Integration
-* Workflow Automation
+```
+Required Qty = Planned Qty × Qty Per Unit × (1 + Scrap% / 100)
+```
 
 ---
 
@@ -283,29 +335,29 @@ The following modules are planned for future releases:
 * SQLAlchemy
 * Pandas
 * Docker
-* Power BI
+* Streamlit
 
 ---
 
 # Architecture
 
 ```
-FastAPI
+Streamlit Dashboard (Frontend)
     │
     ▼
-Business Services
+FastAPI API (Backend REST Layer)
     │
     ▼
-Repository Layer
+Business Services (Planning/MRP/Scheduling Engines)
     │
     ▼
-PostgreSQL
+PostgreSQL Database (via SQLAlchemy ORM)
 ```
 
 ---
 
 # Version
 
-Version: 1.0
+Version: 2.0
 
-Status: Database Design Completed
+Status: Completed
